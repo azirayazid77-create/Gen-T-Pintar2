@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GEN-T Pintar Matematik - Belajar Matematik Dengan Seronok</title>
+  
+  <!-- Tailwind CSS & Google Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Canvas Confetti Library -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <!-- Firebase Scripts (Compat Mode) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBlue: '#38BDF8',
+            brandGreen: '#4ADE80',
+            brandYellow: '#FACC15',
+            brandOrange: '#FB923C',
+            brandBg: '#F0F9FF'
+          },
+          fontFamily: {
+            fredoka: ['Fredoka', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Fredoka', sans-serif;
+      background-color: #F0F9FF;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .btn-bounce {
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .btn-bounce:active {
+      transform: scale(0.92);
+    }
+    .card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+    }
+    @keyframes floating {
+      0% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(2deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    .turtle-float {
+      animation: floating 3s ease-in-out infinite;
+    }
+    .draggable-item {
+      touch-action: none;
+      cursor: grab;
+    }
+    .draggable-item:active {
+      cursor: grabbing;
+    }
+  </style>
+</head>
+<body class="bg-brandBg text-slate-800 min-h-screen flex flex-col justify-between overflow-x-hidden">
+
+  <!-- TOP BAR / HEADER -->
+  <header class="bg-white px-4 py-3 shadow-sm border-b-4 border-brandYellow flex items-center justify-between sticky top-0 z-50">
+    <div class="flex items-center gap-3 cursor-pointer" onclick="showScreen('screen-home')">
+      <!-- Logo App -->
+      <div class="bg-brandBg p-2 rounded-2xl border-2 border-brandBlue flex items-center justify-center">
+        <span class="text-2xl">🐢</span>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold leading-none">
+          <span class="text-brandBlue">GEN</span><span class="text-brandGreen">-T</span> 
+          <span class="text-brandOrange">Pintar Matematik</span>
+        </h1>
+        <p class="text-xs text-slate-500 font-semibold mt-1">Belajar Matematik Dengan Seronok</p>
+      </div>
+    </div>
+
+    <!-- Status Bar Bintang & Audio Controls -->
+    <div class="flex items-center gap-2 md:gap-4">
+      <div class="bg-amber-100 border-2 border-amber-300 rounded-full px-3 py-1 flex items-center gap-1 text-amber-700 font-bold text-sm md:text-base">
+        <span class="text-amber-500 text-lg">⭐</span>
+        <span id="global-stars">0</span>
+      </div>
+      <button id="btn-audio-toggle" onclick="toggleAudio()" class="w-10 h-10 bg-emerald-100 border-2 border-emerald-400 text-emerald-600 rounded-full flex items-center justify-center text-lg btn-bounce">
+        <i class="fa-solid fa-volume-high"></i>
+      </button>
+      <button onclick="showScreen('screen-home')" class="w-10 h-10 bg-sky-100 border-2 border-sky-400 text-sky-600 rounded-full flex items-center justify-center text-lg btn-bounce">
+        <i class="fa-solid fa-house"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTAINER UTAMA APP -->
+  <main class="flex-grow container mx-auto p-4 max-w-4xl flex items-center justify-center">
+
+    <!-- 1. HALAMAN UTAMA -->
+    <section id="screen-home" class="w-full text-center flex flex-col items-center py-4">
+      <!-- Mascot Penyu Kartun -->
+      <div class="relative mb-6 turtle-float">
+        <div class="w-36 h-36 md:w-44 md:h-44 bg-gradient-to-tr from-brandGreen to-emerald-200 rounded-full border-4 border-white shadow-xl flex items-center justify-center relative overflow-visible">
+          <!-- Topi Graduasi & Penyu -->
+          <span class="text-7xl md:text-8xl">🐢</span>
+          <span class="absolute -top-3 right-2 text-4xl">🎓</span>
+          <div class="absolute -bottom-2 bg-brandOrange text-white font-bold text-xs md:text-sm px-3 py-1 rounded-full border-2 border-white shadow">
+            KSPK Prasekolah
+          </div>
+        </div>
+      </div>
+
+      <!-- Menu Utama Buttons -->
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 w-full max-w-2xl">
+        <button onclick="showScreen('screen-modules')" class="bg-brandBlue border-b-8 border-sky-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">📚</span>
+          <span class="text-lg md:text-xl font-bold">Mula Belajar</span>
+        </button>
+
+        <button onclick="showScreen('screen-games')" class="bg-brandGreen border-b-8 border-emerald-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">🎮</span>
+          <span class="text-lg md:text-xl font-bold">Permainan</span>
+        </button>
+
+        <button onclick="showScreen('screen-rewards')" class="bg-brandYellow border-b-8 border-yellow-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">🏆</span>
+          <span class="text-lg md:text-xl font-bold">Ganjaran</span>
+        </button>
+
+        <button onclick="showScreen('screen-progress')" class="bg-brandOrange border-b-8 border-orange-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">📊</span>
+          <span class="text-lg md:text-xl font-bold">Kemajuan</span>
+        </button>
+
+        <button onclick="showParentsModal()" class="bg-purple-400 border-b-8 border-purple-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">👨‍👩‍👧</span>
+          <span class="text-lg md:text-xl font-bold">Ibu Bapa</span>
+        </button>
+
+        <button onclick="showScreen('screen-settings')" class="bg-slate-400 border-b-8 border-slate-600 text-white rounded-3xl p-5 flex flex-col items-center justify-center shadow-lg btn-bounce">
+          <span class="text-4xl md:text-5xl mb-2">⚙️</span>
+          <span class="text-lg md:text-xl font-bold">Tetapan</span>
+        </button>
+      </div>
+    </section>
+
+
+    <!-- 2. SENARAI MODUL BELAJAR -->
+    <section id="screen-modules" class="hidden w-full">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Modul Pembelajaran</h2>
+        <button onclick="showScreen('screen-home')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-2xl font-bold btn-bounce">
+          ← Kembali
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Modul 1 -->
+        <button onclick="startModule(1)" class="bg-white border-4 border-sky-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-brandBlue btn-bounce">
+          <div class="w-16 h-16 bg-sky-100 rounded-2xl flex items-center justify-center text-3xl font-bold text-brandBlue">1️⃣</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Mengenal Nombor</h3>
+            <p class="text-sm text-slate-500">Belajar & sebut nombor 1 - 10</p>
+          </div>
+        </button>
+
+        <!-- Modul 2 -->
+        <button onclick="startModule(2)" class="bg-white border-4 border-emerald-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-brandGreen btn-bounce">
+          <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center text-3xl">🍎</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Membilang Objek</h3>
+            <p class="text-sm text-slate-500">Kira epal, kereta, ikan & bunga</p>
+          </div>
+        </button>
+
+        <!-- Modul 3 -->
+        <button onclick="startModule(3)" class="bg-white border-4 border-amber-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-brandYellow btn-bounce">
+          <div class="w-16 h-16 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl">🧩</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Padankan Nombor</h3>
+            <p class="text-sm text-slate-500">Padankan nombor dengan objek</p>
+          </div>
+        </button>
+
+        <!-- Modul 4 -->
+        <button onclick="startModule(4)" class="bg-white border-4 border-orange-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-brandOrange btn-bounce">
+          <div class="w-16 h-16 bg-orange-100 rounded-2xl flex items-center justify-center text-3xl font-bold text-brandOrange">❓</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Isi Tempat Kosong</h3>
+            <p class="text-sm text-slate-500">Lengkapkan urutan nombor</p>
+          </div>
+        </button>
+
+        <!-- Modul 5 -->
+        <button onclick="startModule(5)" class="bg-white border-4 border-purple-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-purple-500 btn-bounce">
+          <div class="w-16 h-16 bg-purple-100 rounded-2xl flex items-center justify-center text-3xl">🔢</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Susun Nombor</h3>
+            <p class="text-sm text-slate-500">Susun nombor secara berurutan</p>
+          </div>
+        </button>
+
+        <!-- Modul 6 -->
+        <button onclick="startModule(6)" class="bg-white border-4 border-pink-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-pink-500 btn-bounce">
+          <div class="w-16 h-16 bg-pink-100 rounded-2xl flex items-center justify-center text-3xl">⚖️</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Perbandingan</h3>
+            <p class="text-sm text-slate-500">Besar, kecil, banyak & sedikit</p>
+          </div>
+        </button>
+
+        <!-- Modul 7 -->
+        <button onclick="startModule(7)" class="bg-white border-4 border-indigo-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-indigo-500 btn-bounce">
+          <div class="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center text-3xl">📐</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Bentuk</h3>
+            <p class="text-sm text-slate-500">Bulatan, segi empat, bintang & hati</p>
+          </div>
+        </button>
+
+        <!-- Modul 8 -->
+        <button onclick="startModule(8)" class="bg-white border-4 border-teal-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-teal-500 btn-bounce">
+          <div class="w-16 h-16 bg-teal-100 rounded-2xl flex items-center justify-center text-3xl">🎨</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Warna</h3>
+            <p class="text-sm text-slate-500">Mengenal pelbagai warna ceria</p>
+          </div>
+        </button>
+
+        <!-- Modul 9 -->
+        <button onclick="startModule(9)" class="bg-white border-4 border-rose-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-rose-500 btn-bounce">
+          <div class="w-16 h-16 bg-rose-100 rounded-2xl flex items-center justify-center text-3xl font-bold text-rose-500">➕</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Tambah</h3>
+            <p class="text-sm text-slate-500">Operasi tambah asas sehingga 10</p>
+          </div>
+        </button>
+
+        <!-- Modul 10 -->
+        <button onclick="startModule(10)" class="bg-white border-4 border-cyan-300 rounded-3xl p-4 flex items-center gap-4 card-shadow text-left hover:border-cyan-500 btn-bounce">
+          <div class="w-16 h-16 bg-cyan-100 rounded-2xl flex items-center justify-center text-3xl font-bold text-cyan-500">➖</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Tolak</h3>
+            <p class="text-sm text-slate-500">Operasi tolak asas sehingga 10</p>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. WORKSPACE AKTIVITI MODUL INTERAKTIF -->
+    <section id="screen-activity" class="hidden w-full max-w-2xl bg-white rounded-3xl border-4 border-brandBlue p-6 card-shadow relative">
+      <div class="flex items-center justify-between mb-4 border-b pb-3">
+        <span id="module-title" class="font-bold text-xl text-brandBlue">Modul</span>
+        <button onclick="showScreen('screen-modules')" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-xl text-sm font-bold btn-bounce">Tutup</button>
+      </div>
+
+      <!-- Kandungan Interaktif Dinamik -->
+      <div id="activity-content" class="min-h-[300px] flex flex-col items-center justify-center text-center">
+        <!-- Generasi soalan melalui Javascript -->
+      </div>
+    </section>
+
+    <!-- 4. SENARAI PERMAINAN -->
+    <section id="screen-games" class="hidden w-full">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Permainan Matematik</h2>
+        <button onclick="showScreen('screen-home')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-2xl font-bold btn-bounce">← Kembali</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <button onclick="startGame(1)" class="bg-white border-4 border-sky-400 rounded-3xl p-5 flex items-center gap-4 card-shadow text-left btn-bounce">
+          <span class="text-5xl">🎈</span>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Pecahkan Belon</h3>
+            <p class="text-sm text-slate-500">Pecahkan belon dengan nombor betul!</p>
+          </div>
+        </button>
+
+        <button onclick="startGame(2)" class="bg-white border-4 border-emerald-400 rounded-3xl p-5 flex items-center gap-4 card-shadow text-left btn-bounce">
+          <span class="text-5xl">🧺</span>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Kutip Epal</h3>
+            <p class="text-sm text-slate-500">Kutip bilangan epal mengikut arahan</p>
+          </div>
+        </button>
+
+        <button onclick="startGame(3)" class="bg-white border-4 border-amber-400 rounded-3xl p-5 flex items-center gap-4 card-shadow text-left btn-bounce">
+          <span class="text-5xl">🎣</span>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Tangkap Ikan</h3>
+            <p class="text-sm text-slate-500">Tangkap ikan yang ada jawapan betul</p>
+          </div>
+        </button>
+
+        <button onclick="startGame(4)" class="bg-white border-4 border-orange-400 rounded-3xl p-5 flex items-center gap-4 card-shadow text-left btn-bounce">
+          <span class="text-5xl">🏎️</span>
+          <div>
+            <h3 class="text-xl font-bold text-slate-800">Lumba Kereta</h3>
+            <p class="text-sm text-slate-500">Jawab betul untuk terus memandu!</p>
+          </div>
+        </button>
+      </div>
+    </section>
+
+    <!-- 5. WORKSPACE PERMAINAN INTERAKTIF -->
+    <section id="screen-game-workspace" class="hidden w-full max-w-2xl bg-white rounded-3xl border-4 border-brandGreen p-6 card-shadow relative">
+      <div class="flex items-center justify-between mb-4 border-b pb-3">
+        <span id="game-title" class="font-bold text-xl text-brandGreen">Permainan</span>
+        <button onclick="showScreen('screen-games')" class="bg-slate-200 text-slate-600 px-3 py-1 rounded-xl text-sm font-bold btn-bounce">Tutup</button>
+      </div>
+
+      <div id="game-content" class="min-h-[320px] flex flex-col items-center justify-center text-center relative overflow-hidden">
+        <!-- Permainan Dinamik -->
+      </div>
+    </section>
+
+    <!-- 6. GANJARAN & MEDAL -->
+    <section id="screen-rewards" class="hidden w-full text-center">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Ganjaran Saya</h2>
+        <button onclick="showScreen('screen-home')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-2xl font-bold btn-bounce">← Kembali</button>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 border-4 border-brandYellow card-shadow max-w-2xl mx-auto">
+        <h3 class="text-xl font-bold text-amber-600 mb-4">Pingat & Gelaran</h3>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div id="badge-bronze" class="opacity-40 bg-amber-50 border-2 border-amber-300 p-4 rounded-2xl flex flex-col items-center">
+            <span class="text-5xl mb-2">🥉</span>
+            <span class="font-bold text-amber-800">Gangsa</span>
+            <span class="text-xs text-amber-600">10 Bintang</span>
+          </div>
+
+          <div id="badge-silver" class="opacity-40 bg-slate-50 border-2 border-slate-300 p-4 rounded-2xl flex flex-col items-center">
+            <span class="text-5xl mb-2">🥈</span>
+            <span class="font-bold text-slate-700">Perak</span>
+            <span class="text-xs text-slate-500">30 Bintang</span>
+          </div>
+
+          <div id="badge-gold" class="opacity-40 bg-yellow-50 border-2 border-yellow-300 p-4 rounded-2xl flex flex-col items-center">
+            <span class="text-5xl mb-2">🥇</span>
+            <span class="font-bold text-yellow-700">Emas</span>
+            <span class="text-xs text-yellow-600">50 Bintang</span>
+          </div>
+
+          <div id="badge-crown" class="opacity-40 bg-purple-50 border-2 border-purple-300 p-4 rounded-2xl flex flex-col items-center">
+            <span class="text-5xl mb-2">👑</span>
+            <span class="font-bold text-purple-700">Juara</span>
+            <span class="text-xs text-purple-600">100 Bintang</span>
+          </div>
+        </div>
+
+        <!-- Roda Ganjaran Modul Mini -->
+        <button onclick="spinWheel()" class="bg-gradient-to-r from-brandOrange to-brandYellow text-white font-bold text-lg px-8 py-4 rounded-full border-b-4 border-orange-600 shadow-lg btn-bounce">
+          🎡 Putar Roda Ganjaran!
+        </button>
+      </div>
+    </section>
+
+    <!-- 7. KEMAJUAN MURID -->
+    <section id="screen-progress" class="hidden w-full">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Laporan Kemajuan</h2>
+        <button onclick="showScreen('screen-home')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-2xl font-bold btn-bounce">← Kembali</button>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 border-4 border-brandOrange card-shadow grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+        <div class="bg-orange-50 p-4 rounded-2xl border border-orange-200">
+          <p class="text-xs text-orange-600 font-bold">JUMLAH LATIHAN</p>
+          <p id="stat-total-exercises" class="text-3xl font-bold text-orange-700 mt-1">0</p>
+        </div>
+
+        <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200">
+          <p class="text-xs text-amber-600 font-bold">JUMLAH BINTANG</p>
+          <p id="stat-total-stars" class="text-3xl font-bold text-amber-700 mt-1">0</p>
+        </div>
+
+        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+          <p class="text-xs text-emerald-600 font-bold">PERATUS SIAP</p>
+          <p id="stat-completion-rate" class="text-3xl font-bold text-emerald-700 mt-1">0%</p>
+        </div>
+
+        <div class="bg-sky-50 p-4 rounded-2xl border border-sky-200">
+          <p class="text-xs text-sky-600 font-bold">HARI BERTURUT-TURUT</p>
+          <p id="stat-streak" class="text-3xl font-bold text-sky-700 mt-1">1 Hari</p>
+        </div>
+
+        <div class="bg-purple-50 p-4 rounded-2xl border border-purple-200 col-span-2 md:col-span-2">
+          <p class="text-xs text-purple-600 font-bold">TAHAP PENGUASAAN</p>
+          <p id="stat-level" class="text-xl font-bold text-purple-700 mt-1">Permulaan (KSPK 1)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. TETAPAN APP -->
+    <section id="screen-settings" class="hidden w-full">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl md:text-3xl font-bold text-slate-800">Tetapan Aplikasi</h2>
+        <button onclick="showScreen('screen-home')" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-2xl font-bold btn-bounce">← Kembali</button>
+      </div>
+
+      <div class="bg-white rounded-3xl p-6 border-4 border-slate-300 card-shadow space-y-6 max-w-lg mx-auto">
+        <!-- Tetapan Bahasa -->
+        <div class="flex items-center justify-between">
+          <span class="font-bold text-slate-700 text-lg">Bahasa / Language</span>
+          <select id="setting-language" onchange="changeLanguage()" class="bg-slate-100 border-2 border-slate-300 rounded-xl px-3 py-2 font-bold text-slate-700">
+            <option value="ms">🇲🇾 Bahasa Melayu</option>
+            <option value="en">🇬🇧 English</option>
+          </select>
+        </div>
+
+        <!-- Tetapan Audio -->
+        <div class="flex items-center justify-between border-t pt-4">
+          <span class="font-bold text-slate-700 text-lg">Suara Sebutan (Audio)</span>
+          <input type="checkbox" id="setting-audio" checked onchange="toggleAudioSetting()" class="w-6 h-6 accent-brandGreen">
+        </div>
+
+        <!-- Reset Progress -->
+        <div class="border-t pt-4">
+          <button onclick="resetProgress()" class="w-full bg-rose-500 text-white font-bold py-3 rounded-2xl border-b-4 border-rose-700 btn-bounce">
+            Reset Kemajuan
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL KHAS UNTUK IBU BAPA (DENGAN SOALAN KESELAMATAN KANAK-KANAK) -->
+  <div id="modal-parents" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-3xl p-6 border-4 border-purple-400 card-shadow">
+      
+      <!-- Check Kawalan Ibu Bapa -->
+      <div id="parents-gate" class="text-center">
+        <h3 class="text-xl font-bold text-purple-800 mb-2">Zon Ibu Bapa & Guru</h3>
+        <p class="text-sm text-slate-600 mb-4">Sila selesaikan soalan ini untuk teruskan:</p>
+        <p id="gate-question" class="text-2xl font-bold text-slate-800 mb-4">3 + 5 = ?</p>
+        <input type="number" id="gate-answer" class="border-2 border-purple-300 text-center text-xl font-bold rounded-xl p-2 w-32 mb-4 block mx-auto">
+        <div class="flex gap-2 justify-center">
+          <button onclick="verifyParentsGate()" class="bg-purple-600 text-white px-6 py-2 rounded-xl font-bold btn-bounce">Sahkan</button>
+          <button onclick="closeParentsModal()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-xl font-bold btn-bounce">Batal</button>
+        </div>
+      </div>
+
+      <!-- Kandungan Laporan Ibu Bapa -->
+      <div id="parents-content" class="hidden">
+        <div class="flex justify-between items-center mb-4 border-b pb-2">
+          <h3 class="text-xl font-bold text-purple-800">Laporan Pembelajaran Murid</h3>
+          <button onclick="closeParentsModal()" class="text-slate-400 font-bold text-xl">&times;</button>
+        </div>
+        <div class="space-y-3 text-sm text-slate-700">
+          <p><strong>Status KSPK:</strong> Memenuhi Standard Kurikulum Prasekolah Kebangsaan (Matematik Asas).</p>
+          <p><strong>Topik Dikuasai:</strong> Mengenal Nombor 1-10, Operasi Tambah Asas.</p>
+          <p><strong>Cadangan Aktiviti di Rumah:</strong> Mintak anak mengira buah-buahan atau permainan semasa makan bersama keluarga.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-3 text-center text-xs text-slate-500 font-semibold">
+    GEN-T Pintar Matematik &copy; 2026 - KSPK Prasekolah Malaysia
+  </footer>
+
+  <!-- SCRIPT LOGIK APLIKASI -->
+  <script>
+    // -------------------------------------------------------------
+    // 1. FIREBASE CONFIGURATION (Menggunakan tetapan pengguna)
+    // -------------------------------------------------------------
+    const firebaseConfig = {
+      apiKey: "AIzaSyAHinTUwFQGu9iGqtvHiH8CJ8Na76t3af8",
+      authDomain: "nombor-bulat.firebaseapp.com",
+      databaseURL: "https://nombor-bulat-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "nombor-bulat",
+      storageBucket: "nombor-bulat.firebasestorage.app",
+      messagingSenderId: "770257565260",
+      appId: "1:770257565260:web:75716cc7695671b97126e9"
+    };
+
+    // Inisialisasi Firebase
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      console.log("Firebase Database disambungkan.");
+    } catch(e) {
+      console.warn("Firebase gagal disambungkan. Mod luar talian aktif.", e);
+    }
+
+    // -------------------------------------------------------------
+    // 2. STATE APLIKASI & TETAPAN
+    // -------------------------------------------------------------
+    let state = {
+      stars: parseInt(localStorage.getItem('gent_stars')) || 0,
+      exercisesDone: parseInt(localStorage.getItem('gent_exercises')) || 0,
+      language: localStorage.getItem('gent_lang') || 'ms',
+      audioEnabled: true,
+      gateAnswerVal: 0
+    };
+
+    const objectIcons = ['🍎', '🚗', '📚', '✏️', '🐟', '🦆', '🐢', '🌸'];
+
+    // Update Paparan Bintang
+    function updateStarDisplay() {
+      document.getElementById('global-stars').innerText = state.stars;
+      document.getElementById('stat-total-stars').innerText = state.stars;
+      document.getElementById('stat-total-exercises').innerText = state.exercisesDone;
+
+      // Update Badges
+      if(state.stars >= 10) document.getElementById('badge-bronze').classList.remove('opacity-40');
+      if(state.stars >= 30) document.getElementById('badge-silver').classList.remove('opacity-40');
+      if(state.stars >= 50) document.getElementById('badge-gold').classList.remove('opacity-40');
+      if(state.stars >= 100) document.getElementById('badge-crown').classList.remove('opacity-40');
+
+      // Simpan Local
+      localStorage.setItem('gent_stars', state.stars);
+      localStorage.setItem('gent_exercises', state.exercisesDone);
+
+      // Simpan Online Firebase
+      if(db) {
+        db.ref('user_progress').set({
+          stars: state.stars,
+          exercisesDone: state.exercisesDone,
+          lastUpdated: new Date().toISOString()
+        });
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 3. SISTEM AUDIO & SUARA (SPEECH SYNTHESIS)
+    // -------------------------------------------------------------
+    function speak(text) {
+      if(!state.audioEnabled) return;
+      if('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Hentikan suara lama
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = state.language === 'ms' ? 'id-ID' : 'en-US'; // Fallback ke Bahasa Melayu/Indo
+        msg.rate = 0.85; // Sebutan lebih perlahan untuk kanak-kanak
+        window.speechSynthesis.speak(msg);
+      }
+    }
+
+    function toggleAudio() {
+      state.audioEnabled = !state.audioEnabled;
+      const btn = document.getElementById('btn-audio-toggle');
+      if(state.audioEnabled) {
+        btn.innerHTML = `<i class="fa-solid fa-volume-high"></i>`;
+        speak(state.language === 'ms' ? "Audio dihidupkan" : "Audio enabled");
+      } else {
+        btn.innerHTML = `<i class="fa-solid fa-volume-xmark"></i>`;
+      }
+    }
+
+    function toggleAudioSetting() {
+      state.audioEnabled = document.getElementById('setting-audio').checked;
+    }
+
+    function changeLanguage() {
+      state.language = document.getElementById('setting-language').value;
+      localStorage.setItem('gent_lang', state.language);
+    }
+
+    // -------------------------------------------------------------
+    // 4. NAVIGATION / TUKAR SKRIN
+    // -------------------------------------------------------------
+    function showScreen(screenId) {
+      const screens = ['screen-home', 'screen-modules', 'screen-activity', 'screen-games', 'screen-game-workspace', 'screen-rewards', 'screen-progress', 'screen-settings'];
+      screens.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
+      });
+      document.getElementById(screenId).classList.remove('hidden');
+      updateStarDisplay();
+    }
+
+    // Trigger Confetti Apabila Betul
+    function triggerSuccessEffects() {
+      confetti({
+        particleCount: 70,
+        spread: 60,
+        origin: { y: 0.6 }
+      });
+      state.stars += 1;
+      state.exercisesDone += 1;
+      updateStarDisplay();
+      speak(state.language === 'ms' ? "Hebat! Jawapan betul." : "Great job!");
+    }
+
+    // -------------------------------------------------------------
+    // 5. ENJIN MODUL PEMBELAJARAN (MODUL 1 - 10)
+    // -------------------------------------------------------------
+    function startModule(modId) {
+      showScreen('screen-activity');
+      const container = document.getElementById('activity-content');
+      const title = document.getElementById('module-title');
+
+      if(modId === 1) {
+        title.innerText = "Modul 1: Mengenal Nombor";
+        renderModule1(container);
+      } else if(modId === 2) {
+        title.innerText = "Modul 2: Membilang Objek";
+        renderModule2(container);
+      } else if(modId === 3) {
+        title.innerText = "Modul 3: Padankan Nombor & Objek";
+        renderModule3(container);
+      } else if(modId === 4) {
+        title.innerText = "Modul 4: Isi Tempat Kosong";
+        renderModule4(container);
+      } else if(modId === 5) {
+        title.innerText = "Modul 5: Susun Nombor";
+        renderModule5(container);
+      } else if(modId === 6) {
+        title.innerText = "Modul 6: Perbandingan";
+        renderModule6(container);
+      } else if(modId === 7) {
+        title.innerText = "Modul 7: Bentuk";
+        renderModule7(container);
+      } else if(modId === 8) {
+        title.innerText = "Modul 8: Warna";
+        renderModule8(container);
+      } else if(modId === 9) {
+        title.innerText = "Modul 9: Tambah Asas";
+        renderModule9(container);
+      } else if(modId === 10) {
+        title.innerText = "Modul 10: Tolak Asas";
+        renderModule10(container);
+      }
+    }
+
+    // MODUL 1: Mengenal Nombor
+    function renderModule1(c) {
+      c.innerHTML = `
+        <p class="text-slate-600 mb-4 font-bold text-lg">Klik pada nombor untuk mendengar sebutan:</p>
+        <div class="grid grid-cols-5 gap-3 mb-6 w-full max-w-md">
+          ${[1,2,3,4,5,6,7,8,9,10].map(n => `
+            <button onclick="speak('${n}')" class="bg-brandBlue/10 border-4 border-brandBlue text-brandBlue font-bold text-2xl p-4 rounded-2xl btn-bounce">
+              ${n}
+            </button>
+          `).join('')}
+        </div>
+        <button onclick="startModule(1)" class="bg-brandGreen text-white font-bold px-6 py-2 rounded-2xl border-b-4 border-emerald-600 btn-bounce">Soalan Lain</button>
+      `;
+    }
+
+    // MODUL 2: Membilang Objek
+    function renderModule2(c) {
+      const targetNum = Math.floor(Math.random() * 8) + 1;
+      const randomIcon = objectIcons[Math.floor(Math.random() * objectIcons.length)];
+      
+      let iconsHtml = '';
+      for(let i=0; i<targetNum; i++) {
+        iconsHtml += `<span class="text-4xl md:text-5xl m-1 floating inline-block">${randomIcon}</span>`;
+      }
+
+      speak(state.language === 'ms' ? "Berapakah bilangan objek di bawah?" : "How many objects are there?");
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Sila kira objek di bawah:</p>
+        <div class="bg-sky-50 p-6 rounded-3xl border-2 border-sky-200 mb-6 flex flex-wrap justify-center max-w-sm">
+          ${iconsHtml}
+        </div>
+        <div class="flex gap-3">
+          ${[targetNum, targetNum + 1, Math.max(1, targetNum - 1)].sort(() => Math.random() - 0.5).map(ans => `
+            <button onclick="checkAnswer(${ans === targetNum})" class="bg-brandYellow text-slate-800 font-bold text-2xl w-16 h-16 rounded-2xl border-b-4 border-yellow-600 btn-bounce flex items-center justify-center">
+              ${ans}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // MODUL 3: Padankan Nombor & Objek (Interaktif Drag or Click)
+    function renderModule3(c) {
+      const num = Math.floor(Math.random() * 5) + 1;
+      const icon = objectIcons[Math.floor(Math.random() * objectIcons.length)];
+      let iconsArr = Array(num).fill(icon).join('');
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Klik nombor yang sepadan dengan bilangan objek:</p>
+        <div class="text-5xl bg-amber-50 p-4 rounded-2xl border-2 border-amber-200 mb-6">
+          ${iconsArr}
+        </div>
+        <div class="flex gap-4">
+          ${[1,2,3,4,5].map(n => `
+            <button onclick="checkAnswer(${n === num})" class="bg-brandOrange text-white font-bold text-2xl w-14 h-14 rounded-2xl border-b-4 border-orange-600 btn-bounce flex items-center justify-center">
+              ${n}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // MODUL 4: Isi Tempat Kosong
+    function renderModule4(c) {
+      const start = Math.floor(Math.random() * 6) + 1;
+      const missingIndex = Math.floor(Math.random() * 3); // 0, 1, or 2
+      const sequence = [start, start + 1, start + 2];
+      const targetAns = sequence[missingIndex];
+      sequence[missingIndex] = '__';
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Apakah nombor yang tertinggal?</p>
+        <div class="flex items-center justify-center gap-4 text-3xl font-bold text-brandBlue mb-6">
+          ${sequence.map(s => `<span class="bg-sky-100 border-2 border-sky-300 w-16 h-16 rounded-2xl flex items-center justify-center">${s}</span>`).join('')}
+        </div>
+        <div class="flex gap-3">
+          ${[targetAns, targetAns + 1, targetAns - 1].filter(n => n > 0).sort(() => Math.random() - 0.5).map(ans => `
+            <button onclick="checkAnswer(${ans === targetAns})" class="bg-brandGreen text-white font-bold text-2xl w-16 h-16 rounded-2xl border-b-4 border-emerald-600 btn-bounce flex items-center justify-center">
+              ${ans}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // MODUL 5: Susun Nombor
+    function renderModule5(c) {
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Susun nombor secara menaik (Klik ikut urutan):</p>
+        <div id="sequence-box" class="flex gap-2 mb-6 min-h-[60px] bg-slate-100 p-3 rounded-2xl border-2 border-dashed border-slate-300 w-full justify-center"></div>
+        <div class="flex gap-3">
+          ${[1,2,3,4].sort(() => Math.random() - 0.5).map(n => `
+            <button onclick="clickSequenceNum(${n})" id="seq-btn-${n}" class="bg-brandBlue text-white font-bold text-2xl w-14 h-14 rounded-2xl border-b-4 border-sky-600 btn-bounce flex items-center justify-center">
+              ${n}
+            </button>
+          `).join('')}
+        </div>
+      `;
+      window.seqTracker = [];
+    }
+
+    function clickSequenceNum(n) {
+      if(!window.seqTracker) window.seqTracker = [];
+      window.seqTracker.push(n);
+      document.getElementById(`seq-btn-${n}`).classList.add('opacity-30', 'pointer-events-none');
+      document.getElementById('sequence-box').innerHTML += `<span class="bg-brandBlue text-white font-bold text-xl w-12 h-12 rounded-xl flex items-center justify-center">${n}</span>`;
+
+      if(window.seqTracker.length === 4) {
+        const isCorrect = window.seqTracker.every((val, idx) => val === idx + 1);
+        checkAnswer(isCorrect);
+      }
+    }
+
+    // MODUL 6: Perbandingan (Lebih Tinggi / Lebih Kecil)
+    function renderModule6(c) {
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Siapakah yang lebih tinggi?</p>
+        <div class="flex items-end justify-center gap-8 mb-6">
+          <button onclick="checkAnswer(false)" class="flex flex-col items-center bg-pink-50 border-2 border-pink-200 p-4 rounded-2xl btn-bounce">
+            <span class="text-5xl">🦆</span>
+            <span class="font-bold text-slate-700 mt-2">Itik</span>
+          </button>
+          <button onclick="checkAnswer(true)" class="flex flex-col items-center bg-pink-50 border-2 border-pink-200 p-4 rounded-2xl btn-bounce">
+            <span class="text-7xl">🐮</span>
+            <span class="font-bold text-slate-700 mt-2">Lembu</span>
+          </button>
+        </div>
+      `;
+    }
+
+    // MODUL 7: Bentuk
+    function renderModule7(c) {
+      const shapes = [
+        { name: 'Bulatan', icon: '⚪' },
+        { name: 'Segi Four', icon: '🟦' },
+        { name: 'Bintang', icon: '⭐' },
+        { name: 'Hati', icon: '❤️' }
+      ];
+      const target = shapes[Math.floor(Math.random() * shapes.length)];
+
+      speak(`Cari bentuk ${target.name}`);
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Klik bentuk: <span class="text-brandBlue">${target.name}</span></p>
+        <div class="grid grid-cols-2 gap-4">
+          ${shapes.map(s => `
+            <button onclick="checkAnswer(${s.name === target.name})" class="bg-slate-50 border-4 border-slate-200 p-4 rounded-3xl text-5xl btn-bounce flex items-center justify-center">
+              ${s.icon}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // MODUL 8: Warna
+    function renderModule8(c) {
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Klik objek yang berwarna <span class="text-rose-500">Merah</span>:</p>
+        <div class="flex gap-4">
+          <button onclick="checkAnswer(true)" class="bg-rose-100 border-4 border-rose-400 p-4 rounded-3xl text-5xl btn-bounce">🍎</button>
+          <button onclick="checkAnswer(false)" class="bg-yellow-100 border-4 border-yellow-400 p-4 rounded-3xl text-5xl btn-bounce">🍌</button>
+          <button onclick="checkAnswer(false)" class="bg-emerald-100 border-4 border-emerald-400 p-4 rounded-3xl text-5xl btn-bounce">🐸</button>
+        </div>
+      `;
+    }
+
+    // MODUL 9: Tambah
+    function renderModule9(c) {
+      const n1 = Math.floor(Math.random() * 4) + 1;
+      const n2 = Math.floor(Math.random() * 4) + 1;
+      const total = n1 + n2;
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-4">Berapakah jumlah kesemuanya?</p>
+        <div class="flex items-center justify-center gap-3 text-3xl font-bold mb-6">
+          <span class="bg-rose-50 p-3 rounded-2xl border border-rose-200">${'🍎'.repeat(n1)}</span>
+          <span>+</span>
+          <span class="bg-rose-50 p-3 rounded-2xl border border-rose-200">${'🍎'.repeat(n2)}</span>
+          <span>= ?</span>
+        </div>
+        <div class="flex gap-3">
+          ${[total, total + 1, total - 1].sort(() => Math.random() - 0.5).map(ans => `
+            <button onclick="checkAnswer(${ans === total})" class="bg-rose-500 text-white font-bold text-2xl w-16 h-16 rounded-2xl border-b-4 border-rose-700 btn-bounce flex items-center justify-center">
+              ${ans}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // MODUL 10: Tolak
+    function renderModule10(c) {
+      const n1 = Math.floor(Math.random() * 3) + 3; // 3 to 5
+      const n2 = Math.floor(Math.random() * 2) + 1; // 1 to 2
+      const remain = n1 - n2;
+
+      c.innerHTML = `
+        <p class="text-slate-600 font-bold mb-2">Ada ${n1} ekor ikan. Ambil ${n2} ekor. Tinggal berapa?</p>
+        <div class="text-4xl bg-cyan-50 p-4 rounded-2xl border border-cyan-200 mb-6">
+          ${'🐟'.repeat(n1)}
+        </div>
+        <div class="flex gap-3">
+          ${[remain, remain + 1, Math.max(1, remain - 1)].sort(() => Math.random() - 0.5).map(ans => `
+            <button onclick="checkAnswer(${ans === remain})" class="bg-cyan-500 text-white font-bold text-2xl w-16 h-16 rounded-2xl border-b-4 border-cyan-700 btn-bounce flex items-center justify-center">
+              ${ans}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Pengesahan Jawapan Modul
+    function checkAnswer(isCorrect) {
+      if(isCorrect) {
+        triggerSuccessEffects();
+        setTimeout(() => showScreen('screen-modules'), 1500);
+      } else {
+        speak(state.language === 'ms' ? "Cuba lagi ya!" : "Try again!");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 6. ENJIN PERMAINAN INTERAKTIF
+    // -------------------------------------------------------------
+    function startGame(gameId) {
+      showScreen('screen-game-workspace');
+      const container = document.getElementById('game-content');
+      const title = document.getElementById('game-title');
+
+      if(gameId === 1) {
+        title.innerText = "Game 1: Pecahkan Belon";
+        const target = Math.floor(Math.random() * 5) + 1;
+        speak(`Pecahkan belon nombor ${target}`);
+        
+        container.innerHTML = `
+          <p class="text-slate-600 font-bold mb-4">Cari & Pecahkan Belon Nombor: <span class="text-3xl text-brandBlue">${target}</span></p>
+          <div class="flex gap-4">
+            ${[1,2,3,4,5].sort(() => Math.random() - 0.5).map(n => `
+              <button onclick="popBalloon(this, ${n === target})" class="bg-sky-400 border-b-4 border-sky-600 text-white text-2xl font-bold w-16 h-24 rounded-full flex items-center justify-center btn-bounce shadow-md">
+                🎈<br>${n}
+              </button>
+            `).join('')}
+          </div>
+        `;
+      } else if(gameId === 4) {
+        title.innerText = "Game 4: Lumba Kereta";
+        container.innerHTML = `
+          <div class="w-full bg-slate-200 h-20 rounded-2xl relative mb-6 overflow-hidden border-2 border-slate-300 flex items-center">
+            <div id="car-player" class="text-4xl absolute left-2 transition-all duration-500">🏎️</div>
+            <div class="absolute right-4 text-3xl">🏁</div>
+          </div>
+          <p class="text-slate-600 font-bold mb-4">Jawab betul untuk kereta bergerak!</p>
+          <p class="text-2xl font-bold mb-4">2 + 2 = ?</p>
+          <div class="flex gap-4">
+            <button onclick="moveCar(true)" class="bg-brandGreen text-white font-bold text-xl px-6 py-3 rounded-2xl border-b-4 border-emerald-600 btn-bounce">4</button>
+            <button onclick="moveCar(false)" class="bg-brandOrange text-white font-bold text-xl px-6 py-3 rounded-2xl border-b-4 border-orange-600 btn-bounce">5</button>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `<p class="text-slate-600 font-bold">Permainan ini sedia dimainkan! Klik butang di bawah untuk kutip mata.</p>
+        <button onclick="triggerSuccessEffects(); showScreen('screen-games');" class="mt-4 bg-brandGreen text-white px-6 py-3 rounded-2xl font-bold btn-bounce">Main Now</button>`;
+      }
+    }
+
+    function popBalloon(el, isCorrect) {
+      if(isCorrect) {
+        el.innerText = '💥';
+        triggerSuccessEffects();
+        setTimeout(() => showScreen('screen-games'), 1200);
+      } else {
+        speak("Bukan belon ini!");
+      }
+    }
+
+    function moveCar(isCorrect) {
+      if(isCorrect) {
+        const car = document.getElementById('car-player');
+        car.style.left = '80%';
+        triggerSuccessEffects();
+        setTimeout(() => showScreen('screen-games'), 1500);
+      } else {
+        speak("Salah! Kereta terhenti.");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // 7. ZON IBU BAPA & RODA GANJARAN
+    // -------------------------------------------------------------
+    function showParentsModal() {
+      const num1 = Math.floor(Math.random() * 5) + 1;
+      const num2 = Math.floor(Math.random() * 5) + 1;
+      state.gateAnswerVal = num1 + num2;
+      document.getElementById('gate-question').innerText = `${num1} + ${num2} = ?`;
+      document.getElementById('parents-gate').classList.remove('hidden');
+      document.getElementById('parents-content').classList.add('hidden');
+      document.getElementById('modal-parents').classList.remove('hidden');
+    }
+
+    function verifyParentsGate() {
+      const input = parseInt(document.getElementById('gate-answer').value);
+      if(input === state.gateAnswerVal) {
+        document.getElementById('parents-gate').classList.add('hidden');
+        document.getElementById('parents-content').classList.remove('hidden');
+      } else {
+        alert("Jawapan kurang tepat.");
+      }
+    }
+
+    function closeParentsModal() {
+      document.getElementById('modal-parents').classList.add('hidden');
+    }
+
+    function spinWheel() {
+      triggerSuccessEffects();
+      alert("Tahniah! Anda mendapat 1 Pelekat Penyu Comel! 🐢⭐");
+    }
+
+    function resetProgress() {
+      if(confirm("Adakah anda pasti mahu reset semula semua bintang dan kemajuan?")) {
+        state.stars = 0;
+        state.exercisesDone = 0;
+        updateStarDisplay();
+        alert("Kemajuan telah di-reset.");
+      }
+    }
+
+    // Startup Init
+    window.onload = function() {
+      updateStarDisplay();
+      console.log("GEN-T Pintar Matematik Sedia.");
+    }
+  </script>
+</body>
+</html>
